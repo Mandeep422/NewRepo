@@ -28,7 +28,7 @@ namespace OnBoardingTaskApp.Controllers
                            on s.ProductId equals p.Id
                            join st in _context.Set<Store>()
                            on s.StoreId equals st.Id                           
-                           select new { s.Id, ProductName = p.Name, CustomerName = c.Name, StoreName = st.Name, s.DateSold};
+                           select new { s.Id, productId = p.Id, ProductName = p.Name, customerId = c.Id, CustomerName = c.Name, storeId = st.Id, StoreName = st.Name, s.DateSold};
                 return list.ToList();
             }
             catch (Exception e)
@@ -41,9 +41,17 @@ namespace OnBoardingTaskApp.Controllers
         // GET: api/Sales/5
         [Route("api/Sales/GetSales/{id}")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Sales>> GetSales(int id)
+        public Object GetSales(int id)
         {
-            var sales = await _context.Sales.FindAsync(id);
+            var sales = from s in _context.Set<Sales>()
+                       join c in _context.Set<Customer>()
+                       on s.CustomerId equals c.Id
+                       join p in _context.Set<Product>()
+                       on s.ProductId equals p.Id
+                       join st in _context.Set<Store>()
+                       on s.StoreId equals st.Id
+                       where s.Id == id
+                       select new { s.Id, ProductName = p.Name, CustomerName = c.Name, StoreName = st.Name, s.DateSold };
 
             if (sales == null)
             {
@@ -93,24 +101,21 @@ namespace OnBoardingTaskApp.Controllers
         [HttpPost]
         public async Task<ActionResult<Sales>> PostSales(Sales sales)
         {
-            _context.Sales.Add(sales);
+            
             try
             {
+                _context.Sales.Add(sales);
                 await _context.SaveChangesAsync();
+                return CreatedAtAction("GetSales", new { id = sales.Id }, sales);
             }
-            catch (DbUpdateException)
+            catch (Exception e)
             {
-                if (SalesExists(sales.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                Console.WriteLine(e.Message);
+                throw;
             }
+           
+            
 
-            return CreatedAtAction("GetSales", new { id = sales.Id }, sales);
         }
 
         // DELETE: api/Sales/5

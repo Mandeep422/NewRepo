@@ -1,8 +1,6 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace OnBoardingTaskApp.Models
+namespace OnBoardingTaskApp.Model
 {
     public partial class OnBoardingTaskDBContext : DbContext
     {
@@ -35,20 +33,29 @@ namespace OnBoardingTaskApp.Models
             {
                 entity.Property(e => e.Address)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(100);
+
+                entity.HasMany(s => s.Sales)
+                .WithOne(c => c.Customer)
+                .OnDelete(DeleteBehavior.Cascade);
+
             });
 
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.Price).HasColumnType("decimal(6, 2)");
+
+                entity.HasMany(s => s.Sales)
+                .WithOne(p => p.Product)
+                .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Sales>(entity =>
@@ -78,11 +85,15 @@ namespace OnBoardingTaskApp.Models
             {
                 entity.Property(e => e.Address)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasMaxLength(100);
+                    .HasMaxLength(50);
+
+                entity.HasMany(s => s.Sales)
+                .WithOne(st => st.Store)
+                .OnDelete(DeleteBehavior.Cascade);
             });
 
             OnModelCreatingPartial(modelBuilder);

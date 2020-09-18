@@ -7,8 +7,8 @@ export class GetProducts extends React.Component {
         this.state = {
             productList: [],
             showForm: false,
-            formTitle: "New Product",
-            productName: null,
+            formTitle: "Create Product",
+            productName: "",
             productPrice: null,
             productId: 0
         };
@@ -16,6 +16,12 @@ export class GetProducts extends React.Component {
         this.delete = this.delete.bind(this);
         this.CreatePopup = this.CreatePopup.bind(this);
         this.editPopup = this.editPopup.bind(this);
+        this.ClearState = this.ClearState.bind(this);
+        this.baseState = this.state
+    }
+
+    resetForm = () => {
+        this.setState(this.baseState)
     }
 
     componentDidMount() {
@@ -30,30 +36,39 @@ export class GetProducts extends React.Component {
                     productList: json,
                 })
             });
-        console.log(this.state.productList);
     }
 
     editPopup(id) {
         let Data = this.state.productList.find(data => data.id === id);
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
             formTitle: "Edit Product",
             productId: Data.id,
             productName: Data.name,
-            productPrice: Data.Price
+            productPrice: Data.price
 
         });
+        console.log("the price is " + this.state.productPrice);
     }
 
     CreatePopup() {
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
         });
     }
 
+    ClearState() {
+        //this.setState({
+        //    productId: 0,
+        //    productName: "",
+        //    productPrice:0
+        //});
+    }
+
+
     delete(id) {
-        if (!Window.confirm("Do you want to delete product: " + id))
-            return;
+        let Data = this.state.productList.find(data => data.id === id);
+        if (!window.confirm("Do you want to delete product: " + Data.name))            return;
         else {
             fetch('api/Products/DeleteProduct/' + id, {
                 method: 'delete'
@@ -78,13 +93,13 @@ export class GetProducts extends React.Component {
             tableData = productList.map(product =>
                 <tr key={product.id}>
                     <td className="two wide">{product.name}</td>
-                    <td className="ten wide">{product.Price}</td>
+                    <td className="ten wide">{product.price}</td>
                     <td className="four wide">
-                        <button onClick={() => this.editPopup(product.id)}>Edit</button>
+                        <button class="edit_btn" onClick={() => this.editPopup(product.id)}>Edit</button>
                     </td>
 
                     <td className="four wide">
-                        <button onClick={() => this.delete(product.id)}>Delete</button>
+                        <button class="delete_btn" onClick={() => this.delete(product.id)}>Delete</button>
                     </td>
                 </tr>
             )
@@ -93,7 +108,7 @@ export class GetProducts extends React.Component {
         return (
             <React.Fragment>
                 <button onClick={this.CreatePopup.bind(this)}>New Product</button>
-                <table className="ui striped table">
+                <table className="tablelist">
                     <thead>
                         <tr>
                             <th className="two wide">Name</th>
@@ -106,7 +121,7 @@ export class GetProducts extends React.Component {
                         {tableData}
                     </tbody>
                 </table>
-                <div>{<AddProduct showForm={this.state.showForm} formTitle={this.state.formTitle} productId={this.state.productId} productPrice={this.state.productPrice} productName={this.state.productName} />}</div>
+                <div>{this.state.showForm && <AddProduct clearState={this.resetForm} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} productId={this.state.productId} productPrice={this.state.productPrice} productName={this.state.productName} />}</div>
 
             </React.Fragment>
         )

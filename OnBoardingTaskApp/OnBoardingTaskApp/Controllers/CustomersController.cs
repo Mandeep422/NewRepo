@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using OnBoardingTaskApp.Models;
 using System.Text.Json;
 using System.Linq.Expressions;
+using Microsoft.Data.SqlClient;
+using System.Security.Principal;
 
 namespace OnBoardingTaskApp.ControllersBase
 {
@@ -93,16 +95,26 @@ namespace OnBoardingTaskApp.ControllersBase
         [Route("api/Customers/DeleteCustomer/{id}")]
         public async Task<ActionResult<Customer>> DeleteCustomer(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
-            if (customer == null)
+            try
             {
-                return NotFound();
+                var customer = await _context.Customer.FindAsync(id);
+                if (customer == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Customer.Remove(customer);
+                await _context.SaveChangesAsync();
+                
+                return customer;
+
             }
-
-            _context.Customer.Remove(customer);
-            await _context.SaveChangesAsync();
-
-            return customer;
+            catch (SqlException e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
+           
         }
 
         private bool CustomerExists(int id)

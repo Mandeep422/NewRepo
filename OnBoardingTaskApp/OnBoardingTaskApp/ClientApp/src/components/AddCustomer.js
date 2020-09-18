@@ -4,13 +4,24 @@ class AddCustomer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            showForm: false, formTitle: "New Customer", customerName: "Enter name here.", customerAddress: "Enter Address here", customerId: 0
+            showForm: false, formTitle: "Create Customer",
+            customerName: "", customerAddress: "", customerId: 0
         };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }    
 
-    
+    shouldComponentUpdate() {
+        this.props.loadData();
+        console.log("showform1:" + this.state.showForm);
+    }
+
+    handleCancel(event) {
+        this.props.togglepopup();
+        this.props.clearState();
+    }
+
     handleChange(event) {
         if(this.props.customerId > 0) {
             this.setState({
@@ -25,11 +36,11 @@ class AddCustomer extends Component {
         else {
             this.setState({ customerAddress: event.target.value });
         }
-        console.log("Value changed for " + this.state.customerAddress);
-        
+        console.log("showform2:" + this.state.showForm);
     }
 
     handleSubmit(e) {
+        console.log("showform3:" + this.state.showForm);
         e.preventDefault();
         const customerData = new FormData();
         customerData.append('id', this.state.customerId);
@@ -42,25 +53,23 @@ class AddCustomer extends Component {
                 body: customerData
             })
                 .then(json => {
-                   this.props.history.push("api/Customers/GetCustomer");
-         });
-
+                    this.props.togglepopup();
+                    this.props.clearState();
+                });
         } else {
             fetch('api/Customers/PostCustomer' , {
                 method: 'POST',
                 body: customerData
             })
                 .then(response => response.json())
-                .then(json => {
-                    this.props.history.push("api/Customers/GetCustomer");
-                   
+                .then(json => { 
+                    this.props.togglepopup();
                 });
         }
     }
 
     render() {
         return (
-            this.props.showForm && 
             <div className="popup">
                 <form className="popup_inner" id="createedit" onSubmit={this.handleSubmit} key="{this.props.customerId}">
                         <h1>{this.props.formTitle}</h1>
@@ -69,10 +78,12 @@ class AddCustomer extends Component {
 
                     <label>Address : </label>
                     <input type="text" id="address" name="Address" defaultValue={this.props.customerAddress} onChange={this.handleChange}></input>
-                        <input type="submit" value="submit" />
-                        <input type="button" value="Cancel"></input>
+                    <input class="btn cancel" type="button" value="Cancel" onClick={this.handleCancel}></input>
+                    <input class="btn" type="submit" value="Submit" />
                     </form>
-                </div>
+            </div>
+
+
                    
         );
     }

@@ -5,15 +5,25 @@ class AddStore extends Component {
         super(props);
         this.state = {
             showForm: false,
-            formTitle: "New Store",
-            storeName: "Enter name here.",
-            storeAddress: "Enter Address here",
+            formTitle: "Create Store",
+            storeName: "",
+            storeAddress: "",
             storeId: 0
         };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
+
     }
 
+    shouldComponentUpdate() {
+        this.props.loadData();
+    }
+
+    handleCancel(event) {
+        this.props.togglepopup();
+        this.props.clearState();
+    }
 
     handleChange(event) {
         if (this.props.storeId > 0) {
@@ -44,8 +54,8 @@ class AddStore extends Component {
                 body: Data
             })
                 .then(json => {
-                    // console.log(this.props.history);
-                    //this.props.history.push("/GetCustomer");
+                    this.props.togglepopup();
+                    this.props.clearState();
                 });
 
         } else {
@@ -55,10 +65,8 @@ class AddStore extends Component {
             })
                 .then(response => response.json())
                 .then(json => {
-                    //this.props.history.push("/GetCustomer");
-
+                    this.props.togglepopup();
                 });
-            // this.props.history.push("api/Customers/PostCustomer/" + customerData);
         }
     }
 
@@ -73,8 +81,8 @@ class AddStore extends Component {
 
                     <label>Address : </label>
                     <input type="text" id="address" name="Address" defaultValue={this.props.storeAddress} onChange={this.handleChange}></input>
-                    <input type="submit" value="submit" />
-                    <input type="button" value="Cancel"></input>
+                    <input class="btn cancel" type="button" value="Cancel" onClick={this.handleCancel}></input>
+                    <input class="btn" type="submit" value="submit" />
                 </form>
             </div>
 

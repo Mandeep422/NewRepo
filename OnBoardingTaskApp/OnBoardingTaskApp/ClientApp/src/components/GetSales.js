@@ -7,20 +7,26 @@ export class GetSales extends React.Component {
         this.state = {
             salesList: [],
             showForm: false,
-            formTitle: "New Sale",
-            customerName: null,
-            productName: null,
-            storeName: null,
+            formTitle: "Create Sale",
+            customerName: "Select customer",
+            productName: "Select product",
+            storeName: "Select store",
             salesId:0,
             customerId: 0,
             productId: 0,
             storeId: 0,
-            dateSold: null
+            dateSold: new Date()
         };
         this.loadData = this.loadData.bind(this);
         this.delete = this.delete.bind(this);
         this.CreatePopup = this.CreatePopup.bind(this);
         this.editPopup = this.editPopup.bind(this);
+        this.ClearState = this.ClearState.bind(this);
+        this.baseState = this.state
+    }
+
+    resetForm = () => {
+        this.setState(this.baseState)
     }
 
     componentDidMount() {
@@ -28,6 +34,7 @@ export class GetSales extends React.Component {
     }
 
     editPopup(id) {
+        console.log("inside edit");
         let Data = this.state.salesList.find(data => data.id === id);
         this.setState({
             showForm: true,
@@ -36,14 +43,24 @@ export class GetSales extends React.Component {
             customerId: Data.customerId,
             productId: Data.productId,
             storeId: Data.storeId,
-            dateSold: Data.datesold
+            dateSold: Data.dateSold.split('T')[0]
         });
+        console.log("inside edit" + this.state.salesId);
     }
 
     CreatePopup() {
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
         });
+    }
+
+    ClearState() {
+        ////this.setState({
+        ////    salesId: 0,
+        ////    customerId: 0,
+        ////    productId: 0,
+        ////    storeId:0
+        ////});
     }
 
     loadData() {
@@ -57,7 +74,8 @@ export class GetSales extends React.Component {
     }
 
     delete(id) {
-        if (!Window.confirm("Do you want to delete sale: " + id))
+        let Data = this.state.salesList.find(data => data.id === id);
+        if (!window.confirm("Do you want to delete sale: "))
             return;
         else {
             fetch('api/Sales/DeleteSales/' + id, {
@@ -85,13 +103,13 @@ export class GetSales extends React.Component {
                     <td className="two wide">{sale.customerName}</td>
                     <td className="ten wide">{sale.productName}</td>
                     <td className="two wide">{sale.storeName}</td>
-                    <td className="ten wide">{sale.datesold}</td>
+                    <td className="ten wide">{sale.dateSold.split('T')[0]}</td>
                     <td className="four wide">
-                        <button onClick={() => this.editPopup(sale.id)}>Edit</button>
+                        <button class="edit_btn" onClick={() => this.editPopup(sale.id)}>Edit</button>
                     </td>
 
                     <td className="four wide">
-                        <button onClick={() => this.delete(sale.id)}>Delete</button>
+                        <button class="delete_btn" onClick={() => this.delete(sale.id)}>Delete</button>
                     </td>
                 </tr>
             )
@@ -100,7 +118,7 @@ export class GetSales extends React.Component {
         return (
             <React.Fragment>
                 <button onClick={this.CreatePopup.bind(this)}>New Sale</button>
-                <table className="ui striped table">
+                <table className="tablelist">
                     <thead>
                         <tr>
                             <th className="two wide">Customer</th>
@@ -116,7 +134,7 @@ export class GetSales extends React.Component {
                         {tableData}
                     </tbody>
                 </table>
-                <div>{<AddSales showForm={this.state.showForm} formTitle={this.state.formTitle} customerId={this.state.customerId} productId={this.state.productId} storeId={this.state.storeId} datesold={this.state.datesold} />}</div>
+                <div>{this.state.showForm && <AddSales clearState={this.resetForm} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} salesId={this.state.salesId} customerId={this.state.customerId} productId={this.state.productId} storeId={this.state.storeId} dateSold={this.state.dateSold} />}</div>
 
             </React.Fragment>
         )

@@ -5,13 +5,18 @@ export class GetCustomer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            customerList: [], showForm: false, formTitle: "New Customer", customerName: null, customerAddress: null , customerId: 0, isNew: true
+            customerList: [],
+            showForm: false,
+            formTitle: "Create Customer",
+            customerName: "", customerAddress: "", customerId: 0, isNew: true, open: false
         };
         this.loadData = this.loadData.bind(this);
-        this.edit = this.edit.bind(this);
         this.delete = this.delete.bind(this);
         this.CreateCustomerPopup = this.CreateCustomerPopup.bind(this);
         this.editCustomerPopup = this.editCustomerPopup.bind(this);
+        this.ClearState = this.ClearState.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
+        this.show = this.show.bind(this);
     }
 
     componentDidMount() {
@@ -21,18 +26,26 @@ export class GetCustomer extends React.Component {
     editCustomerPopup(id) {
         let customerData = this.state.customerList.find(cust => cust.id === id);
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
+            isNew: false,
             formTitle:"Edit Customer",
             customerId: customerData.id,
             customerName: customerData.name,
             customerAddress: customerData.address
         });
-        console.log("Current state is " + customerData.address);
     }
 
     CreateCustomerPopup() {
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
+        });
+    }
+
+    ClearState() {
+        this.setState({
+            customerId: 0,
+            customerName: "",
+            customerAddress: ""
         });
     }
 
@@ -44,17 +57,11 @@ export class GetCustomer extends React.Component {
                     customerList: json,
                 })
             });
-        console.log("custmers" + this.state.customerList.map);
-    }
-
-    edit(id) {
-        this.props.history.push("/Customers/PutCustomer/" + id);  
-
     }
 
     delete(id) {
-        if (!Window.confirm("Do you want to delete customer: " + id))
-            return;
+        let Data = this.state.customerList.find(data => data.id === id);
+        if (!window.confirm("Do you want to delete customer: " + Data.name))            return;
         else {
             fetch('api/Customers/DeleteCustomer/' + id, {
                 method: 'delete'
@@ -66,13 +73,21 @@ export class GetCustomer extends React.Component {
                         })
                     });
             });
-        }  
+
+        }
+        }
+
+    handleCancel() {
+        this.setState({ open: false });
+    }
+
+    show() {
+        this.setState({ open: true });
     }
 
 render() {
 
     let customerList = this.state.customerList;
-    let showForm = this.state.showForm;
     let tableData = null;
 
     if (customerList !== "") {
@@ -81,11 +96,11 @@ render() {
                 <td className="two wide">{customer.name}</td>
                 <td className="ten wide">{customer.address}</td>
                 <td className="four wide">
-                    <button onClick={() => this.editCustomerPopup(customer.id)}>Edit</button>
+                    <button class="edit_btn" onClick={() => this.editCustomerPopup(customer.id)}>Edit</button>
                 </td>
                 
                 <td className="four wide">
-                    <button onClick={() => this.delete(customer.id)}>Delete</button>
+                        <button class="delete_btn" onClick={() => this.delete(customer.id)}>Delete</button>
                 </td>
             </tr>
         )
@@ -94,7 +109,7 @@ render() {
     return (
         <React.Fragment>
             <button onClick={this.CreateCustomerPopup.bind(this)}>New Customer</button>
-            <table className="ui striped table">
+            <table className="tablelist">
                 <thead>
                     <tr>
                         <th className="two wide">Name</th>
@@ -107,11 +122,13 @@ render() {
                     {tableData}
                 </tbody>
             </table>
-            <div>{<AddCustomer showForm={this.state.showForm} formTitle={this.state.formTitle} customerId={this.state.customerId} customerName={this.state.customerName} customerAddress={this.state.customerAddress} />}</div>
+            <div>{this.state.showForm && <AddCustomer clearState={this.ClearState} loadData={this.loadData} togglepopup={this.CreateCustomerPopup} formTitle={this.state.formTitle} customerId={this.state.customerId} customerName={this.state.customerName} customerAddress={this.state.customerAddress} />}</div>
             
         </React.Fragment>
     )
 }
 }
+
+export default GetCustomer
 
 

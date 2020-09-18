@@ -94,8 +94,8 @@ namespace OnBoardingTaskApp.Controllers
         }
 
         // DELETE: api/Store/5
-        [Route("api/Store/DeleteStore")]
         [HttpDelete("{id}")]
+        [Route("api/Store/DeleteStore/{id}")]
         public async Task<ActionResult<Store>> DeleteStore(int id)
         {
             var store = await _context.Store.FindAsync(id);
@@ -109,6 +109,7 @@ namespace OnBoardingTaskApp.Controllers
 
             return store;
         }
+
 
         private bool StoreExists(int id)
         {

@@ -5,20 +5,31 @@ class AddProduct extends Component {
         super(props);
         this.state = {
             showForm: false,
-            formTitle: "New Product",
-            productName: "Enter name here.",
-            productPrice: "Enter Price here",
+            formTitle: "Create Product",
+            productName: "",
+            productPrice: null,
             productId: 0
         };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
+
     }
 
+    shouldComponentUpdate() {
+        this.props.loadData();
+    }
+
+    handleCancel(event) {
+        this.props.togglepopup();
+        this.props.clearState();
+        this.props.loadData();
+    }
 
     handleChange(event) {
         if (this.props.productId > 0) {
             this.setState({
-                productId: this.props.customerId,
+                productId: this.props.productId,
                 productName: this.props.productName,
                 productPrice: this.props.productPrice
             });
@@ -44,8 +55,7 @@ class AddProduct extends Component {
                 body: Data
             })
                 .then(json => {
-                    // console.log(this.props.history);
-                    //this.props.history.push("/GetCustomer");
+                    this.props.togglepopup();
                 });
 
         } else {
@@ -55,16 +65,13 @@ class AddProduct extends Component {
             })
                 .then(response => response.json())
                 .then(json => {
-                    //this.props.history.push("/GetCustomer");
-
+                    this.props.togglepopup();
                 });
-            // this.props.history.push("api/Customers/PostCustomer/" + customerData);
         }
     }
 
     render() {
         return (
-            this.props.showForm &&
             <div className="popup">
                 <form className="popup_inner" id="createedit" onSubmit={this.handleSubmit} key="{this.props.productId}">
                     <h1>{this.props.formTitle}</h1>
@@ -73,8 +80,8 @@ class AddProduct extends Component {
 
                     <label>Price : </label>
                     <input type="text" id="price" name="Price" defaultValue={this.props.productPrice} onChange={this.handleChange}></input>
-                    <input type="submit" value="submit" />
-                    <input type="button" value="Cancel"></input>
+                    <input class="btn cancel" type="button" value="Cancel" onClick={this.handleCancel}></input>
+                    <input class="btn" type="submit" value="submit" />
                 </form>
             </div>
 

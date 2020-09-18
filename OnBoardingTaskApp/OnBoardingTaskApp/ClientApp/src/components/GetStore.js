@@ -16,6 +16,7 @@ export class GetStore extends React.Component {
         this.delete = this.delete.bind(this);
         this.CreatePopup = this.CreatePopup.bind(this);
         this.editPopup = this.editPopup.bind(this);
+        this.ClearState = this.ClearState.bind(this);
     }
 
     componentDidMount() {
@@ -45,15 +46,25 @@ export class GetStore extends React.Component {
 
     CreatePopup() {
         this.setState({
-            showForm: true,
+            showForm: !this.state.showForm,
         });
     }
 
+    ClearState() {
+        this.setState({
+            storeId: 0,
+            storeName: "",
+            storeAddress: ""
+        });
+    }
+
+
     delete(id) {
-        if (!window.confirm("Do you want to delete store: " + id))
+        let Data = this.state.storeList.find(data => data.id === id);
+        if (!window.confirm("Do you want to delete store: " + Data.name))
             return;
         else {
-            fetch('api/Store/DeleteStore/' + id, {
+            fetch('api/Store/DeleteStore' + id, {
                 method: 'delete'
             }).then(data => {
                 this.setState(
@@ -78,11 +89,11 @@ export class GetStore extends React.Component {
                     <td className="two wide">{store.name}</td>
                     <td className="ten wide">{store.address}</td>
                     <td className="four wide">
-                        <button onClick={() => this.editPopup(store.id)}>Edit</button>
+                        <button class="edit_btn" onClick={() => this.editPopup(store.id)}>Edit</button>
                     </td>
 
                     <td className="four wide">
-                        <button onClick={() => this.delete(store.id)}>Delete</button>
+                        <button class="delete_btn" onClick={() => this.delete(store.id)}>Delete</button>
                     </td>
                 </tr>
             )
@@ -91,7 +102,7 @@ export class GetStore extends React.Component {
         return (
             <React.Fragment>
                 <button onClick={this.CreatePopup.bind()}>New Store</button>
-                <table className="ui striped table">
+                <table className="tablelist">
                     <thead>
                         <tr>
                             <th className="two wide">Name</th>
@@ -104,7 +115,7 @@ export class GetStore extends React.Component {
                         {tableData}
                     </tbody>
                 </table>
-                <div>{<AddStore showForm={this.state.showForm} formTitle={this.state.formTitle} storeId={this.state.storeId} storeName={this.state.storeName} storeAddress={this.state.storeAddress} />}</div>
+                <div>{this.state.showForm && <AddStore clearState={this.ClearState} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} storeId={this.state.storeId} storeName={this.state.storeName} storeAddress={this.state.storeAddress} />}</div>
 
             </React.Fragment>
         )
