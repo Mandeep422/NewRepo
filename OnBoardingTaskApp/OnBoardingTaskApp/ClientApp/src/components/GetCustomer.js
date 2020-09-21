@@ -1,14 +1,25 @@
 ﻿import React from 'react';
 import AddCustomer from './AddCustomer';
+import { Pagination } from 'semantic-ui-react';
 
 export class GetCustomer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             customerList: [],
+            currentRecords: [],
             showForm: false,
             formTitle: "Create Customer",
-            customerName: "", customerAddress: "", customerId: 0, isNew: true, open: false
+            customerName: "", customerAddress: "", customerId: 0, isNew: true, open: false,
+            totalRecords: 0,
+            pageLimit: 10,
+            totalPages: null,
+            currentPage: null,
+
+            customerDatas: [],
+            begin: 0,
+            end: 5,
+            activePage: 1
         };
         this.loadData = this.loadData.bind(this);
         this.delete = this.delete.bind(this);
@@ -17,10 +28,25 @@ export class GetCustomer extends React.Component {
         this.ClearState = this.ClearState.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.show = this.show.bind(this);
+        this.onPaginate = this.onPaginate.bind(this);
     }
 
-    componentDidMount() {
-        this.loadData();
+    async onPaginate(event,
+        data) {
+        await this.setState({ activePage: data.activePage });
+        await this.setState({ begin: this.state.activePage * 5 - 5 });
+        await this.setState({ end: this.state.activePage * 5 });
+        this.setState({
+            customerDatas: this.state.customerList.slice(this.state.begin, this.state.end),
+        });
+    }
+
+    async componentDidMount() {
+        this.setState({ customerList: [] });
+        await this.loadData();
+        this.setState({
+            customerDatas: this.state.customerList.slice(this.state.begin, this.state.end),
+        });
     }
 
     editCustomerPopup(id) {
@@ -49,12 +75,13 @@ export class GetCustomer extends React.Component {
         });
     }
 
-    loadData() {
-        fetch('api/Customers/GetCustomer')
+    async loadData() {
+        await fetch('api/Customers/GetCustomer')
             .then(res => res.json())
             .then(json => {
                 this.setState({
                     customerList: json,
+                    totalRecords: this.state.customerList.length,
                 })
             });
     }
@@ -87,7 +114,7 @@ export class GetCustomer extends React.Component {
 
 render() {
 
-    let customerList = this.state.customerList;
+    let customerList = this.state.customerDatas;
     let tableData = null;
 
     if (customerList !== "") {
@@ -122,6 +149,12 @@ render() {
                     {tableData}
                 </tbody>
             </table>
+            <Pagination className="pagination"
+                defaultActivePage={1}
+                activePage={this.state.activePage}
+                totalPages={Math.ceil(this.state.customerList.length / 5)}
+                onPageChange={this.onPaginate}
+            />
             <div>{this.state.showForm && <AddCustomer clearState={this.ClearState} loadData={this.loadData} togglepopup={this.CreateCustomerPopup} formTitle={this.state.formTitle} customerId={this.state.customerId} customerName={this.state.customerName} customerAddress={this.state.customerAddress} />}</div>
             
         </React.Fragment>

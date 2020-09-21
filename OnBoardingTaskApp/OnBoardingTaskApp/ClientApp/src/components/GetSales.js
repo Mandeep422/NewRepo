@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import AddSales from './AddSales';
+import { Pagination } from 'semantic-ui-react';
 
 export class GetSales extends React.Component {
     constructor(props) {
@@ -15,7 +16,12 @@ export class GetSales extends React.Component {
             customerId: 0,
             productId: 0,
             storeId: 0,
-            dateSold: new Date()
+            dateSold: new Date(),
+
+            salesDatas: [],
+            begin: 0,
+            end: 5,
+            activePage: 1
         };
         this.loadData = this.loadData.bind(this);
         this.delete = this.delete.bind(this);
@@ -23,14 +29,29 @@ export class GetSales extends React.Component {
         this.editPopup = this.editPopup.bind(this);
         this.ClearState = this.ClearState.bind(this);
         this.baseState = this.state
+        this.onPaginate = this.onPaginate.bind(this);
+    }
+
+    async onPaginate(event,
+        data) {
+        await this.setState({ activePage: data.activePage });
+        await this.setState({ begin: this.state.activePage * 5 - 5 });
+        await this.setState({ end: this.state.activePage * 5 });
+        this.setState({
+            salesDatas: this.state.salesList.slice(this.state.begin, this.state.end),
+        });
     }
 
     resetForm = () => {
         this.setState(this.baseState)
     }
 
-    componentDidMount() {
-        this.loadData();
+    async componentDidMount() {
+        this.setState({ salesList: [] });
+        await this.loadData();
+        this.setState({
+            salesDatas: this.state.salesList.slice(this.state.begin, this.state.end),
+        });
     }
 
     editPopup(id) {
@@ -63,8 +84,8 @@ export class GetSales extends React.Component {
         ////});
     }
 
-    loadData() {
-        fetch('api/Sales/GetSales')
+    async loadData() {
+        await fetch('api/Sales/GetSales')
             .then(res => res.json())
             .then(json => {
                 this.setState({
@@ -93,7 +114,7 @@ export class GetSales extends React.Component {
 
     render() {
 
-        let salesList = this.state.salesList;
+        let salesList = this.state.salesDatas;
         let showForm = this.state.showForm;
         let tableData = null;
 
@@ -134,6 +155,12 @@ export class GetSales extends React.Component {
                         {tableData}
                     </tbody>
                 </table>
+                <Pagination className="pagination"
+                    defaultActivePage={1}
+                    activePage={this.state.activePage}
+                    totalPages={Math.ceil(this.state.salesList.length / 5)}
+                    onPageChange={this.onPaginate}
+                />
                 <div>{this.state.showForm && <AddSales clearState={this.resetForm} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} salesId={this.state.salesId} customerId={this.state.customerId} productId={this.state.productId} storeId={this.state.storeId} dateSold={this.state.dateSold} />}</div>
 
             </React.Fragment>

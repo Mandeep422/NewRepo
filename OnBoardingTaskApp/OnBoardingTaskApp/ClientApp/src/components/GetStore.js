@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import AddStore from './AddStore';
+import { Pagination } from 'semantic-ui-react';
 
 export class GetStore extends React.Component {
     constructor(props) {
@@ -10,21 +11,41 @@ export class GetStore extends React.Component {
             formTitle: "New Store",
             storeName: null,
             storeAddress: null,
-            storeId: 0
+            storeId: 0,
+
+            storeDatas: [],
+            begin: 0,
+            end: 5,
+            activePage: 1
         };
         this.loadData = this.loadData.bind(this);
         this.delete = this.delete.bind(this);
         this.CreatePopup = this.CreatePopup.bind(this);
         this.editPopup = this.editPopup.bind(this);
         this.ClearState = this.ClearState.bind(this);
+        this.onPaginate = this.onPaginate.bind(this);
     }
 
-    componentDidMount() {
-        this.loadData();
+    async onPaginate(event,
+        data) {
+        await this.setState({ activePage: data.activePage });
+        await this.setState({ begin: this.state.activePage * 5 - 5 });
+        await this.setState({ end: this.state.activePage * 5 });
+        this.setState({
+            storeDatas: this.state.storeList.slice(this.state.begin, this.state.end),
+        });
     }
 
-    loadData() {
-        fetch('api/Store/GetStore')
+    async componentDidMount() {
+        this.setState({ storeList: [] });
+        await this.loadData();
+        this.setState({
+            storeDatas: this.state.storeList.slice(this.state.begin, this.state.end),
+        });
+    }
+
+    async loadData() {
+        await fetch('api/Store/GetStore')
             .then(res => res.json())
             .then(json => {
                 this.setState({
@@ -79,7 +100,7 @@ export class GetStore extends React.Component {
 
     render() {
 
-        let storeList = this.state.storeList;
+        let storeList = this.state.storeDatas;
         let showForm = this.state.showForm;
         let tableData = null;
 
@@ -115,6 +136,12 @@ export class GetStore extends React.Component {
                         {tableData}
                     </tbody>
                 </table>
+                <Pagination className="pagination"
+                    defaultActivePage={1}
+                    activePage={this.state.activePage}
+                    totalPages={Math.ceil(this.state.storeList.length / 5)}
+                    onPageChange={this.onPaginate}
+                />
                 <div>{this.state.showForm && <AddStore clearState={this.ClearState} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} storeId={this.state.storeId} storeName={this.state.storeName} storeAddress={this.state.storeAddress} />}</div>
 
             </React.Fragment>

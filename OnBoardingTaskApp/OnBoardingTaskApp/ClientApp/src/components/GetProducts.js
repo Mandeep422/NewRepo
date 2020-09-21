@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import AddProduct from './AddProduct';
+import {Pagination} from 'semantic-ui-react';
 
 export class GetProducts extends React.Component {
     constructor(props) {
@@ -10,7 +11,12 @@ export class GetProducts extends React.Component {
             formTitle: "Create Product",
             productName: "",
             productPrice: null,
-            productId: 0
+            productId: 0,
+
+            productDatas: [],
+            begin: 0,
+            end: 5,
+            activePage: 1
         };
         this.loadData = this.loadData.bind(this);
         this.delete = this.delete.bind(this);
@@ -18,18 +24,33 @@ export class GetProducts extends React.Component {
         this.editPopup = this.editPopup.bind(this);
         this.ClearState = this.ClearState.bind(this);
         this.baseState = this.state
+        this.onPaginate = this.onPaginate.bind(this);
+    }
+
+    async onPaginate(event,
+        data) {
+        await this.setState({ activePage: data.activePage });
+        await this.setState({ begin: this.state.activePage * 5 - 5 });
+        await this.setState({ end: this.state.activePage * 5 });
+        this.setState({
+            productDatas: this.state.productList.slice(this.state.begin, this.state.end),
+        });
     }
 
     resetForm = () => {
         this.setState(this.baseState)
     }
 
-    componentDidMount() {
-        this.loadData();
+    async componentDidMount() {
+        this.setState({ productList: [] });
+        await this.loadData();
+        this.setState({
+            productDatas: this.state.productList.slice(this.state.begin, this.state.end),
+        });
     }
 
-    loadData() {
-        fetch('api/Products/GetProduct')
+    async loadData() {
+        await fetch('api/Products/GetProduct')
             .then(res => res.json())
             .then(json => {
                 this.setState({
@@ -65,7 +86,6 @@ export class GetProducts extends React.Component {
         //});
     }
 
-
     delete(id) {
         let Data = this.state.productList.find(data => data.id === id);
         if (!window.confirm("Do you want to delete product: " + Data.name))            return;
@@ -85,8 +105,7 @@ export class GetProducts extends React.Component {
 
     render() {
 
-        let productList = this.state.productList;
-        let showForm = this.state.showForm;
+        let productList = this.state.productDatas;
         let tableData = null;
 
         if (productList !== "") {
@@ -122,10 +141,14 @@ export class GetProducts extends React.Component {
                     </tbody>
                 </table>
                 <div>{this.state.showForm && <AddProduct clearState={this.resetForm} loadData={this.loadData} togglepopup={this.CreatePopup} showForm={this.state.showForm} formTitle={this.state.formTitle} productId={this.state.productId} productPrice={this.state.productPrice} productName={this.state.productName} />}</div>
-
+                <Pagination className="pagination"
+                    defaultActivePage={1}
+                    activePage={this.state.activePage}
+                    totalPages={Math.ceil(this.state.productList.length / 5)}
+                    onPageChange={this.onPaginate}
+                />
             </React.Fragment>
         )
     }
 }
-
 export default GetProducts
